@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 function indexf(req, res, next) {
-    res.render('index', { title: '12345' });
+    res.render('index', { title: '生成短網址工具' });
 }
 router.get('/', indexf);
 
@@ -15,16 +15,21 @@ var db_info = {
     user: 'ankertim',
     password: '1234',
     database:'dcard_intern',
-    port: 3306
+    port: 3306,
+    dateStrings: true
 }
 var connection = mysql.createConnection(db_info);
 connection.connect();
 var query = {
     sql: 'SELECT * FROM shorturl',
-    timeout: 40000
+    timeout: 40000,
 }
-connection.query(query, function(err, rows, fields) {
-    if (err) throw err;
+function callback(error, rows, fields) {
+    if (error) throw error;
     console.log('The result is: ', rows);
-});
+    console.log('type of result is: ', typeof(rows));
+}
+connection.query(query, callback);
 connection.end();
+// use pool
+var pool = mysql.createPool(db_info);
