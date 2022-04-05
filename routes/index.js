@@ -1,5 +1,7 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const validUrl = require('valid-url');
+const shortId = require('shortid');
 var global_a;
 
 /* GET home page. */
@@ -52,10 +54,30 @@ var db_info = {
 }
 var pool = mysql.createPool(db_info);
 
-// function  
+// function 
 function urlCallback(req, res) {
-  console.log('Hello AAAA: ', req.body.orig_url);
-  var query = {
+  const long_url = req.body.orig_url;
+  console.log('Hello AAAA: ', long_url);
+  pool.getConnection(
+    function(err, connection) {
+      if (validUrl.isUri(long_url)) {
+        var query = {
+          sql: "SELECT `new_url` FROM `shorturl` where `orig_url` = " + connection.escape(long_url)
+        }
+    
+        function dbCallback(error, results, fields) {
+          if (error) throw error;
+          console.log('The result is: ', results);
+          console.log('Hello AAA: ');
+        }
+      }
+      connection.query(query, dbCallback);
+      res.render('urlPage', { title: '短網址生成工具' });
+      connection.release();
+    }
+  );
+  
+  /*var query = {
     sql: 'SELECT * FROM shorturl'
     //url: req.body.orig_url
   }
@@ -70,7 +92,7 @@ function urlCallback(req, res) {
     function(err, connection) { 
       connection.query(query, dbCallback) //(error, rows, fields)
     }
-  );
+  );*/
   /*
   //新增完成後，查詢目前所有使用者
   connection.query('select * from users', function(err, rows, field){
@@ -83,9 +105,9 @@ function urlCallback(req, res) {
           user: rows
       });
   });
-  */
+  
   res.render('urlPage', { title: '短網址生成工具' });
-  connection.release();
+  connection.release();*/
 }
 router.post('/convert', urlCallback)
 
