@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <center>
+      <h1>歡迎使用 <%= title %></h1>
+      <form method="post" action="/convert">
+        輸入網址: <input name="orig_url" type="text">
+        <input type="submit" value="生成">
+      </form>
+    </center>
+  </body>
+</html>
