@@ -63,6 +63,7 @@ var db_info = {
   password: '1234',
   database:'dcard_intern',
   port: 3306,
+  // if true date will be 2022-04-06
   dateStrings: true
 }
 var pool = mysql.createPool(db_info);
@@ -81,29 +82,27 @@ const urlCallback = async function(req, res) {
       // set up query function
       const mySqlQuery = () => {
         return new Promise((resolve, reject) => {
+          // set up query instruction
           var query_sql = {
             sql: "SELECT `urlCode` FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
+            //sql: "SELECT * FROM `shorturl`"
           }
           // set up db Callback function
           function dbCallback(error, results, fields) {
             // handle error
             if (error) throw error;
-            // show results
-            console.log('AAAAA');
-            console.log('The results is: ', results);
-            global_results = results;
             resolve(results);
           }
+          // call query to database
           promiseQuery(query_sql, dbCallback);
         })
       }
       
-      const aa = await mySqlQuery();
+      global_results = await mySqlQuery();
       // show db return data
-      console.log('BBB');
       console.log('The global results is: ', global_results);
-      console.log('type of results is: ', typeof(global_results));
-      // if db do not have orig_url that user type, convert short urlCode and insert into db.
+      console.log('Type of results is: ', typeof(global_results));
+      // if database do not have orig_url that user type, convert short urlCode and insert into db.
       if (typeof(global_results[0]) == "undefined") {
         console.log('User type url is undefined');
         // show today
@@ -125,13 +124,29 @@ const urlCallback = async function(req, res) {
         urlCode = shortId.generate();
         console.log("urlCode", urlCode);
         // set up query
-        var query = {
-          sql: "INSERT INTO `shorturl` VALUES(?, ?, ?)",
-          values: [urlCode, connection.escape(long_url), expireDay_wb_db]
+        const mySqlQuery = () => {
+          return new Promise((resolve, reject) => {
+            // set up query instruction
+            var query_sql = {
+              sql: "INSERT INTO `shorturl` VALUES(?, ?, ?)",
+              values: [urlCode, long_url, expireDay_wb_db] // if can use escape, just use
+            }
+            // set up db Callback function
+            function dbCallback(error, results, fields) {
+              // handle error
+              if (error) throw error;
+              resolve(results);
+            }
+            // call query to database
+            promiseQuery(query_sql, dbCallback);
+          })
         }
+        global_results = await mySqlQuery();
+        // show db return data
+        console.log('The global results is: ', global_results);
+        console.log('Type of results is: ', typeof(global_results));
       }
-      else { console.log('database has orig_url'); }
-      //console.log("global: ", global_results);
+      else { console.log('Database has orig_url'); }
       res.render('urlPage', { title: '短網址生成工具' });
     } catch (error) {
       console.log(error);
