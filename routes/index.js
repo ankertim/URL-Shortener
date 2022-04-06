@@ -2,17 +2,30 @@ const express = require('express');
 const router = express.Router();
 const validUrl = require('valid-url');
 const shortId = require('shortid');
-var global_a;
+const util = require('util');
+
+var urlCode = undefined;
+var systemDate = new Date();
+var expireDay = new Date();
+var expireDay_year, expireDay_month, expireDay_date;
+var expireDay_wb_db;
+var global_results;
+
+// use addDays function: Date.addDays(10), Date will be add 10 days, Date is type of new Date().
+Date.prototype.addDays = function(days) {
+  this.setDate(this.getDate() + days);
+  return this;
+}
 
 /* GET home page. */
 function indexPage(req, res, next) {
-    res.render('index', { title: '生成短網址網站' });
+  res.render('index', { title: '生成短網址網站' });
 }
 router.get('/', indexPage);
 
 /* GET shorturl page */
 function get_urlPage(req, res, next) {
-    res.render('urlPage', { title: '短網址生成工具' });
+  res.render('urlPage', { title: '短網址生成工具' });
 }
 router.get('/api/urls', get_urlPage);
 /*
@@ -54,60 +67,83 @@ var db_info = {
 }
 var pool = mysql.createPool(db_info);
 
-// function 
-function urlCallback(req, res) {
+// async function 
+const urlCallback = async function(req, res) {
   const long_url = req.body.orig_url;
-  console.log('Hello AAAA: ', long_url);
-  pool.getConnection(
-    function(err, connection) {
-      if (validUrl.isUri(long_url)) {
+  console.log('User type url is: ', long_url);
+  // pool.query() is a shortcut for pool.getConnection() + connection.query() + connection.release().
+  const promiseQuery = util.promisify(pool.query).bind(pool);
+  const promisePoolEnd = util.promisify(pool.end).bind(pool);
+  // vaild user type url
+  if (validUrl.isUri(long_url)) {
+    // query to database
+    try {
+      // set up query
+      var query_sql = {
+        sql: "SELECT `urlCode` FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
+      }
+      // set up db Callback function
+      function dbCallback(error, results, fields) {
+        
+        // handle error
+        if (error) throw error;
+        return new Promise((resolve, reject) => { 
+          console.log('AAAAA');
+          console.log('The results is: ', results);
+          global_results = results;
+        })
+      }
+      const aa = await promiseQuery(query_sql, dbCallback);
+      // show db return data
+      console.log('BBB');
+      console.log('The results is: ', global_results);
+      console.log('type of results is: ', typeof(global_results));
+      // if db do not have orig_url that user type, convert short urlCode and insert into db.
+      if (typeof(global_results[0]) == "undefined") {
+        console.log('User type url is undefined');
+        // show today
+        console.log(systemDate);
+        // set up expireDay for today add 10 days.
+        expireDay.addDays(10);
+        // get expireDay year, month and date.
+        expireDay_year = expireDay.getFullYear();
+        expireDay_month = expireDay.getMonth() + 1;
+        if (expireDay_month < 10) expireDay_month = "0" + expireDay_month; // if month = 4 will -> 04, change type to string.
+        console.log(typeof(expireDay_month));
+        expireDay_date = expireDay.getDate();
+        // set up expireDay wirte back database string format.
+        expireDay_wb_db = expireDay_year + "-" + expireDay_month + "-" + expireDay_date;
+        // show expireDay
+        console.log("expireDay_wb_db: ", expireDay_wb_db);
+        // generate shortid
+        urlCode = undefined;
+        urlCode = shortId.generate();
+        console.log("urlCode", urlCode);
+        // set up query
         var query = {
-          sql: "SELECT `new_url` FROM `shorturl` where `orig_url` = " + connection.escape(long_url)
-        }
-    
-        function dbCallback(error, results, fields) {
-          if (error) throw error;
-          console.log('The result is: ', results);
-          console.log('Hello AAA: ');
+          sql: "INSERT INTO `shorturl` VALUES(?, ?, ?)",
+          values: [urlCode, connection.escape(long_url), expireDay_wb_db]
         }
       }
-      connection.query(query, dbCallback);
+      else { console.log('database has orig_url'); }
+      //console.log("global: ", global_results);
       res.render('urlPage', { title: '短網址生成工具' });
-      connection.release();
+    } catch (error) {
+      console.log(error);
+      res.status(500).json('Sever error');
+    } finally {
+      promisePoolEnd();
     }
-  );
-  
-  /*var query = {
-    sql: 'SELECT * FROM shorturl'
-    //url: req.body.orig_url
+  } else {
+    res.status(401).json('Invalid long url');
   }
   
-  function dbCallback(error, results, fields) {
-    if (error) throw error;
-    console.log('The result is: ', results);
-    console.log('Hello AAA: ');
-  }
-
-  pool.getConnection(
-    function(err, connection) { 
-      connection.query(query, dbCallback) //(error, rows, fields)
-    }
-  );*/
   /*
-  //新增完成後，查詢目前所有使用者
-  connection.query('select * from users', function(err, rows, field){
-      if (err)
-          throw err;
-          console.log('Hello BBB: ');
-      //將資料傳送到首頁的使用者列表
-      res.render('user', {
-          title: '使用者列表',
-          user: rows
-      });
-  });
-  
-  res.render('urlPage', { title: '短網址生成工具' });
-  connection.release();*/
+  pool.getConnection(function(err, connection) {
+    
+    
+    if (connection) connection.release();
+  });*/
 }
 router.post('/convert', urlCallback)
 
