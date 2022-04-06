@@ -99,34 +99,7 @@ router.get('/:code', async (req, res, next) => {
   }
 });
 
-/*
-// database setting
-var mysql = require('mysql');
-var db_info = {
-    host: 'localhost',
-    user: 'ankertim',
-    password: '1234',
-    database:'dcard_intern',
-    port: 3306,
-    dateStrings: true
-}
-var connection = mysql.createConnection(db_info);
-connection.connect();
-var query = {
-    sql: 'SELECT * FROM shorturl'
-}
-function callback(error, rows, fields) {
-    if (error) throw error;
-    global_a = rows;
-    console.log('The result is: ', rows);
-    console.log('type of result is: ', typeof(rows));
-}
-connection.query(query, callback);
-console.log('The result: ', global_a);
-connection.end();
-*/
-
-// async function 
+// async function for post callback about user generate short url 
 const urlCallback = async function(req, res) {
   const long_url = req.body.orig_url;
   console.log('User type url is: ', long_url);
@@ -139,7 +112,7 @@ const urlCallback = async function(req, res) {
         return new Promise((resolve, reject) => {
           // set up query instruction
           var query_sql = {
-            sql: "SELECT `urlCode` FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
+            sql: "SELECT * FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
             //sql: "SELECT * FROM `shorturl`"
           }
           // set up db Callback function
@@ -152,6 +125,7 @@ const urlCallback = async function(req, res) {
           promiseQuery(query_sql, dbCallback);
         })
       }
+      // call query function
       global_results = await mySqlQuery();
       // show db return data
       console.log('The global results is: ', global_results);
@@ -199,13 +173,20 @@ const urlCallback = async function(req, res) {
         // show db return data
         console.log('The global results is: ', global_results);
         console.log('Type of results is: ', typeof(global_results));
-        res.render('urlPage', { title: '短網址生成工具', db_urlCode: urlCode, db_orig_url: long_url});
+              values: [urlCode, long_url, expireDay_wb_db] // if can use escape, just use
+        res.render('urlPage', { title: '短網址生成工具',
+                                db_urlCode: urlCode,
+                                db_orig_url: long_url,
+                                db_expire_date: expireDay_wb_db});
       } else { 
         urlCode = undefined;
         urlCode = global_results[0].urlCode;
         console.log('urlCode: ', urlCode);
         console.log('Database has orig_url');
-        res.render('urlPage', { title: '短網址生成工具', db_urlCode: urlCode, db_orig_url: long_url});
+        res.render('urlPage', { title: '短網址生成工具',
+                                db_urlCode: urlCode,
+                                db_orig_url: long_url,
+                                db_expire_date: global_results[0].expire_date});
       }
     } catch (error) {
       console.log(error);
@@ -216,13 +197,6 @@ const urlCallback = async function(req, res) {
   } else {
     res.status(401).json('Invalid long url');
   }
-  /*
-  pool.getConnection(function(err, connection) {
-    
-    
-    if (connection) connection.release();
-  });*/
 }
 router.post('/api/urls', urlCallback)
-
 module.exports = router;
