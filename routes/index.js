@@ -17,6 +17,23 @@ Date.prototype.addDays = function(days) {
   return this;
 }
 
+// create pool
+var mysql = require('mysql');
+var db_info = {
+  host: 'localhost',
+  user: 'ankertim',
+  password: '1234',
+  database:'dcard_intern',
+  port: 3306,
+  // if true date will be 2022-04-06
+  dateStrings: true
+}
+var pool = mysql.createPool(db_info);
+
+// pool.query() is a shortcut for pool.getConnection() + connection.query() + connection.release().
+const promiseQuery = util.promisify(pool.query).bind(pool);
+const promisePoolEnd = util.promisify(pool.end).bind(pool);
+
 /* GET home page. */
 function indexPage(req, res, next) {
   res.render('index', { title: '生成短網址網站' });
@@ -28,6 +45,43 @@ function get_urlPage(req, res, next) {
   res.render('urlPage', { title: '短網址生成工具' });
 }
 router.get('/api/urls', get_urlPage);
+
+/* Redirect url */
+router.get('/:code', async (req, res, next) => {
+  try {
+    const urlCode = req.params.code;
+    const mySqlQuery = () => {
+      return new Promise((resolve, reject) => {
+        // set up query instruction
+        var query_sql = {
+          sql: "SELECT `orig_url` FROM `shorturl` where `urlCode` = " + "'" + urlCode + "'" //  use escape if can use
+          //sql: "SELECT * FROM `shorturl`"
+        }
+        // set up db Callback function
+        function dbCallback(error, results, fields) {
+          // handle error
+          if (error) throw error;
+          resolve(results);
+        }
+        // call query to database
+        promiseQuery(query_sql, dbCallback);
+      })
+    }
+    global_results = await mySqlQuery();
+    console.log("Get db orig_url: ", global_results[0].orig_url);
+    console.log("Typeof orig_url is: ", typeof(global_results[0].orig_url));
+    if (typeof(global_results[0].orig_url) == "string") {
+      // Redirect to orig_url
+      console.log("database has orig_url, can redirect.");
+      res.redirect(global_results[0].orig_url);
+    } else {
+      res.status(404).json("No url found");
+    }
+  } catch (error) {
+    res.status(500).json("Server error");
+  }
+});
+
 /*
 // database setting
 var mysql = require('mysql');
@@ -54,27 +108,11 @@ connection.query(query, callback);
 console.log('The result: ', global_a);
 connection.end();
 */
-//===========================================================
-// create pool
-var mysql = require('mysql');
-var db_info = {
-  host: 'localhost',
-  user: 'ankertim',
-  password: '1234',
-  database:'dcard_intern',
-  port: 3306,
-  // if true date will be 2022-04-06
-  dateStrings: true
-}
-var pool = mysql.createPool(db_info);
 
 // async function 
 const urlCallback = async function(req, res) {
   const long_url = req.body.orig_url;
   console.log('User type url is: ', long_url);
-  // pool.query() is a shortcut for pool.getConnection() + connection.query() + connection.release().
-  const promiseQuery = util.promisify(pool.query).bind(pool);
-  const promisePoolEnd = util.promisify(pool.end).bind(pool);
   // vaild user type url
   if (validUrl.isUri(long_url)) {
     // query to database
@@ -146,13 +184,17 @@ const urlCallback = async function(req, res) {
         console.log('Type of results is: ', typeof(global_results));
         res.render('urlPage', { title: '短網址生成工具', db_urlCode: urlCode, db_orig_url: long_url});
       } else { 
+        urlCode = undefined;
+        urlCode = global_results[0].urlCode;
+        console.log('urlCode: ', urlCode);
         console.log('Database has orig_url');
+        res.render('urlPage', { title: '短網址生成工具', db_urlCode: urlCode, db_orig_url: long_url});
       }
     } catch (error) {
       console.log(error);
       res.status(500).json('Sever error');
     } finally {
-      promisePoolEnd();
+      //promisePoolEnd();
     }
   } else {
     res.status(401).json('Invalid long url');
