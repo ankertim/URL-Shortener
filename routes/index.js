@@ -97,7 +97,6 @@ const urlCallback = async function(req, res) {
           promiseQuery(query_sql, dbCallback);
         })
       }
-      
       global_results = await mySqlQuery();
       // show db return data
       console.log('The global results is: ', global_results);
@@ -145,9 +144,10 @@ const urlCallback = async function(req, res) {
         // show db return data
         console.log('The global results is: ', global_results);
         console.log('Type of results is: ', typeof(global_results));
+        res.render('urlPage', { title: '短網址生成工具', db_urlCode: urlCode, db_orig_url: long_url});
+      } else { 
+        console.log('Database has orig_url');
       }
-      else { console.log('Database has orig_url'); }
-      res.render('urlPage', { title: '短網址生成工具' });
     } catch (error) {
       console.log(error);
       res.status(500).json('Sever error');
@@ -157,7 +157,6 @@ const urlCallback = async function(req, res) {
   } else {
     res.status(401).json('Invalid long url');
   }
-  
   /*
   pool.getConnection(function(err, connection) {
     
@@ -165,6 +164,6 @@ const urlCallback = async function(req, res) {
     if (connection) connection.release();
   });*/
 }
-router.post('/convert', urlCallback)
+router.post('/api/urls', urlCallback)
 
 module.exports = router;

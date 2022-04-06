@@ -7,10 +7,25 @@
   <body>
     <center>
       <h1>歡迎使用 <%= title %></h1>
-      <form method="post" action="/convert">
+      <form method="post" action="/api/urls">
         輸入網址: <input name="orig_url" type="url" size="60" >
         <input type="submit"value="生成">
       </form>
+      <!-- Use (typeof db_urlCode == 'object') because db_urlCode is undefined-->
+      <% if (typeof db_urlCode != 'undefined' && db_urlCode) { %>
+      <table id="table_course" BORDER="2" WIDTH="auto" HEIGHT="80%" CELLSPACING="5" CELLPADDING="6" cols="11" rules="all" style="margin:100px">
+        <tr>
+          <td>短網址</td>
+          <td>原始網址</td>
+        </tr>
+        <tr>
+          <td><%= db_urlCode%></td>
+          <td><%= db_orig_url%></td>
+        </tr>
+      </table>
+        <% } else{ %>
+          <p> 尚未回傳短網址 </p>
+      <% } %>
     </center>
   </body>
 </html>
