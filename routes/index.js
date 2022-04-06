@@ -78,25 +78,30 @@ const urlCallback = async function(req, res) {
   if (validUrl.isUri(long_url)) {
     // query to database
     try {
-      // set up query
-      var query_sql = {
-        sql: "SELECT `urlCode` FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
-      }
-      // set up db Callback function
-      function dbCallback(error, results, fields) {
-        
-        // handle error
-        if (error) throw error;
-        return new Promise((resolve, reject) => { 
-          console.log('AAAAA');
-          console.log('The results is: ', results);
-          global_results = results;
+      // set up query function
+      const mySqlQuery = () => {
+        return new Promise((resolve, reject) => {
+          var query_sql = {
+            sql: "SELECT `urlCode` FROM `shorturl` where `orig_url` = " + "'" + long_url + "'" //  use escape if can use
+          }
+          // set up db Callback function
+          function dbCallback(error, results, fields) {
+            // handle error
+            if (error) throw error;
+            // show results
+            console.log('AAAAA');
+            console.log('The results is: ', results);
+            global_results = results;
+            resolve(results);
+          }
+          promiseQuery(query_sql, dbCallback);
         })
       }
-      const aa = await promiseQuery(query_sql, dbCallback);
+      
+      const aa = await mySqlQuery();
       // show db return data
       console.log('BBB');
-      console.log('The results is: ', global_results);
+      console.log('The global results is: ', global_results);
       console.log('type of results is: ', typeof(global_results));
       // if db do not have orig_url that user type, convert short urlCode and insert into db.
       if (typeof(global_results[0]) == "undefined") {
