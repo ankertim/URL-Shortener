@@ -14,4 +14,7 @@ framework: express
 
 
 ## 執行步驟
+
+Open terminal and type `npm start`.
+
 在 browser 輸入 http://127.0.0.1:3000/api/urls 來使用
