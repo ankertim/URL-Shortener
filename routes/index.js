@@ -9,6 +9,7 @@ var systemDate = new Date();
 var expireDay = new Date();
 var expireDay_year, expireDay_month, expireDay_date;
 var expireDay_wb_db;
+var db_rt_expireDay;
 var global_results;
 
 // use addDays function: Date.addDays(10), Date will be add 10 days, Date is type of new Date().
@@ -50,11 +51,12 @@ router.get('/api/urls', get_urlPage);
 router.get('/:code', async (req, res, next) => {
   try {
     const urlCode = req.params.code;
+    // set up query function
     const mySqlQuery = () => {
       return new Promise((resolve, reject) => {
         // set up query instruction
         var query_sql = {
-          sql: "SELECT `orig_url` FROM `shorturl` where `urlCode` = " + "'" + urlCode + "'" //  use escape if can use
+          sql: "SELECT * FROM `shorturl` where `urlCode` = " + "'" + urlCode + "'" //  use escape if can use
           //sql: "SELECT * FROM `shorturl`"
         }
         // set up db Callback function
@@ -68,12 +70,27 @@ router.get('/:code', async (req, res, next) => {
       })
     }
     global_results = await mySqlQuery();
-    console.log("Get db orig_url: ", global_results[0].orig_url);
-    console.log("Typeof orig_url is: ", typeof(global_results[0].orig_url));
     if (typeof(global_results[0].orig_url) == "string") {
       // Redirect to orig_url
-      console.log("database has orig_url, can redirect.");
-      res.redirect(global_results[0].orig_url);
+      console.log("database has orig_url");
+      console.log("global_results: ", global_results);
+      // show db orig_url
+      console.log("Get db orig_url: ", global_results[0].orig_url);
+      console.log("Typeof orig_url is: ", typeof(global_results[0].orig_url));
+      // show db expire date
+      console.log("Get expire date: ", global_results[0].expire_date)
+      console.log("Type of expire date is: ", typeof(global_results[0].expire_date));
+      // vaild expire date
+      db_rt_expireDay = new Date(global_results[0].expire_date);
+      console.log("Now Date: ", systemDate);
+      console.log("Expire Date: ", db_rt_expireDay);
+      console.log("vaild short url:" , db_rt_expireDay >= systemDate);
+      // if short url has not expired, redirect url, else 404 Invaild! 
+      if (db_rt_expireDay >= systemDate) {
+        res.redirect(global_results[0].orig_url);
+      } else {
+        res.status(404).json("Invaild! This short url has expired.");
+      }
     } else {
       res.status(404).json("No url found");
     }
