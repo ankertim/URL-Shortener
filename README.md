@@ -8,7 +8,9 @@
 
 database: mysql
 
-3rd party lib: validUrl, shortid, express
+3rd party lib: validUrl, shortid
+
+framework: express
 
 
 ## 執行步驟
