@@ -1,7 +1,6 @@
 # Dcard backend intern (持續更新)
 
-Demo 網址: https://dcardhw.herokuapp.com/api/urls
-(已部屬)
+Demo 網址: https://dcardhw.herokuapp.com/api/urls (已部屬)
 
 
 ## 前言
@@ -22,3 +21,8 @@ framework: express
 
 - 同步與非同步
 - heroku mysql: can not import, because only support utf8, do not support utf8mb4.
+
+## 待解決項目 跟 想增加功能
+
+- 過期的網址沒有從 database 刪除，之後沒辦法轉換短網址
+- Unit test
