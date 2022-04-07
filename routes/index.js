@@ -23,7 +23,7 @@ var mysql = require('mysql');
 var db_info = {
   host: 'us-cdbr-east-05.cleardb.net',
   user: 'bc0a8279eca7f8',
-  password: '1254f5c49',
+  password: '254f5c49',
   database:'heroku_ae3bdc7a73a3cbd',
   port: 3306,
   // if true date will be 2022-04-06
@@ -173,7 +173,8 @@ const urlCallback = async function(req, res) {
         // show db return data
         console.log('The global results is: ', global_results);
         console.log('Type of results is: ', typeof(global_results));
-              values: [urlCode, long_url, expireDay_wb_db] // if can use escape, just use
+        urlCode = "/" + urlCode;
+        console.log('urlCode: ', urlCode);
         res.render('urlPage', { title: '短網址生成工具',
                                 db_urlCode: urlCode,
                                 db_orig_url: long_url,
@@ -183,6 +184,8 @@ const urlCallback = async function(req, res) {
         urlCode = global_results[0].urlCode;
         console.log('urlCode: ', urlCode);
         console.log('Database has orig_url');
+        urlCode = "/" + urlCode;
+        console.log('urlCode: ', urlCode);
         res.render('urlPage', { title: '短網址生成工具',
                                 db_urlCode: urlCode,
                                 db_orig_url: long_url,
