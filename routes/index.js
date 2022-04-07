@@ -21,10 +21,10 @@ Date.prototype.addDays = function(days) {
 // create pool
 var mysql = require('mysql');
 var db_info = {
-  host: 'localhost',
-  user: 'ankertim',
-  password: '1234',
-  database:'dcard_intern',
+  host: 'us-cdbr-east-05.cleardb.net',
+  user: 'bc0a8279eca7f8',
+  password: '1254f5c49',
+  database:'heroku_ae3bdc7a73a3cbd',
   port: 3306,
   // if true date will be 2022-04-06
   dateStrings: true
