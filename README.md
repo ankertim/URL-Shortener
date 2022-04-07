@@ -1,4 +1,4 @@
-# Dcard backend intern (持續更新)
+# URL Shortener (持續更新)
 
 Demo 網址: https://dcardhw.herokuapp.com/api/urls (已部屬)
 
