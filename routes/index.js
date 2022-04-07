@@ -136,6 +136,7 @@ const urlCallback = async function(req, res) {
         // show today
         console.log(systemDate);
         // set up expireDay for today add 10 days.
+        expireDay = new Date();
         expireDay.addDays(10);
         // get expireDay year, month and date.
         expireDay_year = expireDay.getFullYear();
