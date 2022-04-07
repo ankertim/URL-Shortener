@@ -18,8 +18,7 @@ database: mysql
 framework: express
 
 
-## 執行步驟
+## 遇到問題
 
-Open terminal and type `npm start`.
-
-在 browser 輸入 http://127.0.0.1:3000/api/urls 來使用
+- 同步與非同步
+- heroku mysql: can not import, because only support utf8, do not support utf8mb4.
