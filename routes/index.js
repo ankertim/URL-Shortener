@@ -174,7 +174,7 @@ const urlCallback = async function(req, res) {
         // show db return data
         console.log('The global results is: ', global_results);
         console.log('Type of results is: ', typeof(global_results));
-        urlCode = "/" + urlCode;
+        urlCode = "https://dcardhw.herokuapp.com/" + urlCode;
         console.log('urlCode: ', urlCode);
         res.render('urlPage', { title: '短網址生成工具',
                                 db_urlCode: urlCode,
@@ -185,7 +185,7 @@ const urlCallback = async function(req, res) {
         urlCode = global_results[0].urlCode;
         console.log('urlCode: ', urlCode);
         console.log('Database has orig_url');
-        urlCode = "/" + urlCode;
+        urlCode = "https://dcardhw.herokuapp.com/" + urlCode;
         console.log('urlCode: ', urlCode);
         res.render('urlPage', { title: '短網址生成工具',
                                 db_urlCode: urlCode,
